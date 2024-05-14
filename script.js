@@ -1,9 +1,7 @@
 const addBtn = document.querySelector("#addBtn");
-
 const main = document.querySelector("#main");
 
 // onClick event listener
-
 addBtn.addEventListener("click", function () {
   addNote();
 });
@@ -13,7 +11,6 @@ const saveNotes = () => {
   // Select content textareas
   const notes = document.querySelectorAll(".note .content");
   // Select title textareas
-
   const titles = document.querySelectorAll(".note .title");
   const data = [];
   notes.forEach((note, index) => {
@@ -81,16 +78,23 @@ const addNote = (text = "", title = "") => {
   saveNotes();
 };
 
-// Loading all the notes those are saved in
-// the localstorage
-
+// Loading all the notes those are saved in the localstorage
 function loadNotes() {
   const titlesData = JSON.parse(localStorage.getItem("titles")) || [];
-
   const contentData = JSON.parse(localStorage.getItem("notes")) || [];
 
   for (let i = 0; i < Math.max(titlesData.length, contentData.length); i++) {
     addNote(contentData[i], titlesData[i]);
   }
 }
+function showNotification(message, className) {
+    const notification = document.createElement("div");
+    notification.className = `alert ${className}`;
+    notification.appendChild(document.createTextNode(message));
+    main.appendChild(notification);
+    setTimeout(() => {
+      notification.remove();
+    }, 3000); // Remove notification after 3 seconds
+  }
+  
 loadNotes();
