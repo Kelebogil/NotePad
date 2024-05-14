@@ -15,14 +15,10 @@ const saveNotes = () => {
   // Select title textareas
 
   const titles = document.querySelectorAll(".note .title");
-
   const data = [];
-
   notes.forEach((note, index) => {
     const content = note.value;
-
     const title = titles[index].value;
-
     console.log(title);
 
     if (content.trim() !== "") {
@@ -31,13 +27,9 @@ const saveNotes = () => {
   });
 
   const titlesData = data.map((item) => item.title);
-
   console.log(titlesData);
-
   localStorage.setItem("titles", JSON.stringify(titlesData));
-
   const contentData = data.map((item) => item.content);
-
   localStorage.setItem("notes", JSON.stringify(contentData));
 };
 
@@ -45,29 +37,18 @@ const saveNotes = () => {
 
 const addNote = (text = "", title = "") => {
   const note = document.createElement("div");
-
   note.classList.add("note");
-
   note.innerHTML = ` 
     <div class="icons"> 
-
          <i class="save fas fa-save" 
-
              style="color:red"> 
-
          </i> 
-
          <i class="trash fas fa-trash" 
-
              style="color:yellow"> 
-
          </i>  
-
     </div> 
     <div class="title-div"> 
-
         <textarea class="title" 
-
             placeholder="Write the title ...">${title} 
         </textarea> 
     </div> 
@@ -77,21 +58,22 @@ const addNote = (text = "", title = "") => {
     `;
 
   function handleTrashClick() {
-    note.remove();
-    saveNotes();
-  }
+    const confirmation = confirm("Are you sure you want to delete this note?");
+    if (confirmation) {
+        note.remove();
+        saveNotes();
+      }
+    }
   function handleSaveClick() {
     saveNotes();
+    alert("Note saved successfully!");
   }
 
   const delBtn = note.querySelector(".trash");
-
   const saveButton = note.querySelector(".save");
-
   const textareas = note.querySelectorAll("textarea");
 
   delBtn.addEventListener("click", handleTrashClick);
-
   saveButton.addEventListener("click", handleSaveClick);
 
   main.appendChild(note);
