@@ -1,37 +1,52 @@
-const addBtn = document.querySelector("#addBtn");
-const main = document.querySelector("#main");
 
-// onClick event listener
-addBtn.addEventListener("click", function () {
-  addNote();
-});
-
-// Save button function
-const saveNotes = () => {
-  // Select content textareas
-  const notes = document.querySelectorAll(".note .content");
-  // Select title textareas
-  const titles = document.querySelectorAll(".note .title");
+// Updated saveNotes function to make an HTTP POST request to the server
+const saveNotes = async () => {
+  const notes = document.querySelectorAll(".note");
   const data = [];
-  notes.forEach((note, index) => {
-    const content = note.value;
-    const title = titles[index].value;
-    console.log(title);
-
-    if (content.trim() !== "") {
-      data.push({ title, content });
-    }
+  notes.forEach(note => {
+    const content = note.querySelector(".content").value;
+    const title = note.querySelector(".title").value;
+    data.push({ title, content });
   });
 
-  const titlesData = data.map((item) => item.title);
-  console.log(titlesData);
-  localStorage.setItem("titles", JSON.stringify(titlesData));
-  const contentData = data.map((item) => item.content);
-  localStorage.setItem("notes", JSON.stringify(contentData));
+  try {
+    const response = await fetch('/api/notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save notes');
+    }
+
+    const responseData = await response.json();
+    showNotification(responseData.message, 'success');
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
 };
 
-// Addnote button function
+// Updated loadNotes function to make an HTTP GET request to the server
+const loadNotes = async () => {
+  try {
+    const response = await fetch('/api/notes');
+    if (!response.ok) {
+      throw new Error('Failed to load notes');
+    }
 
+    const notes = await response.json();
+    notes.forEach(note => {
+      addNote(note.content, note.title);
+    });
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
+};
+
+// Modified addNote function to remove local storage operations and handle UI only
 const addNote = (text = "", title = "") => {
   const note = document.createElement("div");
   note.classList.add("note");
@@ -57,10 +72,11 @@ const addNote = (text = "", title = "") => {
   function handleTrashClick() {
     const confirmation = confirm("Are you sure you want to delete this note?");
     if (confirmation) {
-        note.remove();
-        saveNotes();
-      }
+      note.remove();
+      saveNotes();
     }
+  }
+
   function handleSaveClick() {
     saveNotes();
     alert("Note saved successfully!");
@@ -68,33 +84,23 @@ const addNote = (text = "", title = "") => {
 
   const delBtn = note.querySelector(".trash");
   const saveButton = note.querySelector(".save");
-  const textareas = note.querySelectorAll("textarea");
 
   delBtn.addEventListener("click", handleTrashClick);
   saveButton.addEventListener("click", handleSaveClick);
 
   main.appendChild(note);
-
-  saveNotes();
 };
 
-// Loading all the notes those are saved in the localstorage
-function loadNotes() {
-  const titlesData = JSON.parse(localStorage.getItem("titles")) || [];
-  const contentData = JSON.parse(localStorage.getItem("notes")) || [];
-
-  for (let i = 0; i < Math.max(titlesData.length, contentData.length); i++) {
-    addNote(contentData[i], titlesData[i]);
-  }
-}
+// Function to display notification
 function showNotification(message, className) {
-    const notification = document.createElement("div");
-    notification.className = `alert ${className}`;
-    notification.appendChild(document.createTextNode(message));
-    main.appendChild(notification);
-    setTimeout(() => {
-      notification.remove();
-    }, 3000); // Remove notification after 3 seconds
-  }
-  
+  const notification = document.createElement("div");
+  notification.className = `alert ${className}`;
+  notification.appendChild(document.createTextNode(message));
+  main.appendChild(notification);
+  setTimeout(() => {
+    notification.remove();
+  }, 3000); // Remove notification after 3 seconds
+}
+
+// Load notes when the page is loaded
 loadNotes();
